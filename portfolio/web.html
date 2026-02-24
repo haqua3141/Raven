@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WEB制作 | 白川 明成</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <header class="hero small">
+        <h1>WEBサイト制作</h1>
+        <a href="index.html" class="back">← BACK</a>
+    </header>
+
+    <section class="detail">
+        <h2>制作概要</h2>
+        <p>
+            HTML / CSS を使用した静的サイト制作を中心に、
+            デザイン設計からコーディングまで一貫して対応。<br>
+            世界観の構築と視認性の両立を意識しています。
+        </p>
+
+        <h2>使用ツール</h2>
+        <p>Visual Studio Code</p>
+
+        <h2>制作実績</h2>
+
+        <div class="web-gallery">
+
+            <div class="web-item">
+                <img src="img/sample1.jpg" alt="制作物1">
+                <div class="web-overlay">
+                    <p>インテリアデザインサイト</p>
+                    <div class="web-buttons">
+                        <a href="http://kensyu.whitesnow.jp/shirakawa_akinari/portfolio/index.html"
+                            target="_blank">サイトを見る</a>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </section>
+
+    <!-- モーダル -->
+    <div id="modal" class="modal" onclick="closeModal()">
+        <img id="modal-img">
+    </div>
+
+    <script>
+        function openModal(src) {
+            document.getElementById("modal").style.display = "flex";
+            document.getElementById("modal-img").src = src;
+        }
+
+        function closeModal() {
+            document.getElementById("modal").style.display = "none";
+        }
+    </script>
+
+</body>
+
+</html>
