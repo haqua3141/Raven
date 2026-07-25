@@ -27,7 +27,6 @@ const defaultCraftRecipes = [
         id: "weapon-001",
  　　　 category: "weapon",
   　　　name: "ハンドガン",
-  　　　sortOrder: 1
 
         description:
             "基本的なハンドガンをクラフトできます。",
