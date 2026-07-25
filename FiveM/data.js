@@ -2,6 +2,7 @@
    Craft Recipe Database
    Shared Data Layer
    data.js
+   Sort Order Supported
 ========================================================= */
 
 
@@ -28,6 +29,8 @@ const defaultCraftRecipes = [
         category: "weapon",
         name: "ハンドガン",
 
+        sortOrder: 1,
+
         description:
             "基本的なハンドガンをクラフトできます。",
 
@@ -35,31 +38,24 @@ const defaultCraftRecipes = [
             "images/recipes/handgun.jpg",
 
         materials: [
-
             {
                 name: "鉄",
                 amount: 10
             },
-
             {
                 name: "アルミ",
                 amount: 5
             },
-
             {
                 name: "プラスチック",
                 amount: 3
             }
-
         ],
 
         locations: [
-
             {
                 name: "武器クラフト工場 A",
-
-                address:
-                    "番地 1001",
+                address: "番地 1001",
 
                 fieldImage:
                     "images/locations/weapon-a-field.jpg",
@@ -73,9 +69,7 @@ const defaultCraftRecipes = [
 
             {
                 name: "武器クラフト工場 B",
-
-                address:
-                    "番地 2045",
+                address: "番地 2045",
 
                 fieldImage:
                     "images/locations/weapon-b-field.jpg",
@@ -86,7 +80,6 @@ const defaultCraftRecipes = [
                 description:
                     "倉庫内の右奥にクラフト台があります。"
             }
-
         ],
 
         notes:
@@ -99,6 +92,8 @@ const defaultCraftRecipes = [
         category: "weapon",
         name: "ショットガン",
 
+        sortOrder: 2,
+
         description:
             "近距離向けのショットガンをクラフトできます。",
 
@@ -106,31 +101,24 @@ const defaultCraftRecipes = [
             "images/recipes/shotgun.jpg",
 
         materials: [
-
             {
                 name: "鉄",
                 amount: 18
             },
-
             {
                 name: "アルミ",
                 amount: 8
             },
-
             {
                 name: "ゴム",
                 amount: 4
             }
-
         ],
 
         locations: [
-
             {
                 name: "武器クラフト工場 A",
-
-                address:
-                    "番地 1001",
+                address: "番地 1001",
 
                 fieldImage:
                     "images/locations/weapon-a-field.jpg",
@@ -141,7 +129,6 @@ const defaultCraftRecipes = [
                 description:
                     "工場建物の奥にクラフト台があります。"
             }
-
         ],
 
         notes:
@@ -158,6 +145,8 @@ const defaultCraftRecipes = [
         category: "handicraft",
         name: "バッグ",
 
+        sortOrder: 1,
+
         description:
             "収納用バッグをクラフトできます。",
 
@@ -165,31 +154,24 @@ const defaultCraftRecipes = [
             "images/recipes/bag.jpg",
 
         materials: [
-
             {
                 name: "布",
                 amount: 10
             },
-
             {
                 name: "糸",
                 amount: 5
             },
-
             {
                 name: "革",
                 amount: 3
             }
-
         ],
 
         locations: [
-
             {
                 name: "手芸工房 A",
-
-                address:
-                    "番地 3022",
+                address: "番地 3022",
 
                 fieldImage:
                     "images/locations/handicraft-a-field.jpg",
@@ -200,7 +182,6 @@ const defaultCraftRecipes = [
                 description:
                     "建物1階に手芸クラフト台があります。"
             }
-
         ],
 
         notes: ""
@@ -212,6 +193,8 @@ const defaultCraftRecipes = [
         category: "handicraft",
         name: "衣服",
 
+        sortOrder: 2,
+
         description:
             "基本的な衣服をクラフトできます。",
 
@@ -219,26 +202,20 @@ const defaultCraftRecipes = [
             "images/recipes/clothes.jpg",
 
         materials: [
-
             {
                 name: "布",
                 amount: 15
             },
-
             {
                 name: "糸",
                 amount: 8
             }
-
         ],
 
         locations: [
-
             {
                 name: "手芸工房 B",
-
-                address:
-                    "番地 3178",
+                address: "番地 3178",
 
                 fieldImage:
                     "images/locations/handicraft-b-field.jpg",
@@ -249,7 +226,6 @@ const defaultCraftRecipes = [
                 description:
                     "店内奥側にクラフト場所があります。"
             }
-
         ],
 
         notes: ""
@@ -265,6 +241,8 @@ const defaultCraftRecipes = [
         category: "special",
         name: "特殊キット",
 
+        sortOrder: 1,
+
         description:
             "特殊用途に使用するキットです。",
 
@@ -272,31 +250,24 @@ const defaultCraftRecipes = [
             "images/recipes/special-kit.jpg",
 
         materials: [
-
             {
                 name: "電子部品",
                 amount: 6
             },
-
             {
                 name: "プラスチック",
                 amount: 8
             },
-
             {
                 name: "銅",
                 amount: 4
             }
-
         ],
 
         locations: [
-
             {
                 name: "特殊クラフト施設 A",
-
-                address:
-                    "番地 4500",
+                address: "番地 4500",
 
                 fieldImage:
                     "images/locations/special-a-field.jpg",
@@ -310,9 +281,7 @@ const defaultCraftRecipes = [
 
             {
                 name: "特殊クラフト施設 B",
-
-                address:
-                    "番地 4682",
+                address: "番地 4682",
 
                 fieldImage:
                     "images/locations/special-b-field.jpg",
@@ -323,7 +292,6 @@ const defaultCraftRecipes = [
                 description:
                     "建物の裏口から入った場所にあります。"
             }
-
         ],
 
         notes:
@@ -340,6 +308,8 @@ const defaultCraftRecipes = [
         category: "food",
         name: "ハンバーガー",
 
+        sortOrder: 1,
+
         description:
             "基本的なハンバーガーを作成できます。",
 
@@ -347,31 +317,24 @@ const defaultCraftRecipes = [
             "images/recipes/hamburger.jpg",
 
         materials: [
-
             {
                 name: "パン",
                 amount: 1
             },
-
             {
                 name: "肉",
                 amount: 1
             },
-
             {
                 name: "野菜",
                 amount: 2
             }
-
         ],
 
         locations: [
-
             {
                 name: "レストラン A",
-
-                address:
-                    "番地 5201",
+                address: "番地 5201",
 
                 fieldImage:
                     "images/locations/food-a-field.jpg",
@@ -382,7 +345,6 @@ const defaultCraftRecipes = [
                 description:
                     "キッチン内の調理台で作成できます。"
             }
-
         ],
 
         notes:
@@ -395,6 +357,8 @@ const defaultCraftRecipes = [
         category: "food",
         name: "ドリンク",
 
+        sortOrder: 2,
+
         description:
             "飲料を作成できます。",
 
@@ -402,26 +366,20 @@ const defaultCraftRecipes = [
             "images/recipes/drink.jpg",
 
         materials: [
-
             {
                 name: "水",
                 amount: 1
             },
-
             {
                 name: "砂糖",
                 amount: 2
             }
-
         ],
 
         locations: [
-
             {
                 name: "レストラン A",
-
-                address:
-                    "番地 5201",
+                address: "番地 5201",
 
                 fieldImage:
                     "images/locations/food-a-field.jpg",
@@ -432,7 +390,6 @@ const defaultCraftRecipes = [
                 description:
                     "店内キッチンで作成できます。"
             }
-
         ],
 
         notes: ""
@@ -463,7 +420,57 @@ function cloneCraftData(data) {
 
 
 /* =========================================================
-   データ整形
+   数値整形
+========================================================= */
+
+function normalizeAmount(value) {
+
+    const number =
+        Number(value);
+
+
+    if (
+        !Number.isFinite(number) ||
+        number < 0
+    ) {
+
+        return 0;
+
+    }
+
+
+    return number;
+
+}
+
+
+/* =========================================================
+   並び順整形
+========================================================= */
+
+function normalizeSortOrder(value) {
+
+    const number =
+        Number(value);
+
+
+    if (
+        !Number.isFinite(number) ||
+        number < 1
+    ) {
+
+        return 9999;
+
+    }
+
+
+    return Math.floor(number);
+
+}
+
+
+/* =========================================================
+   レシピ整形
 ========================================================= */
 
 function normalizeCraftRecipe(recipe) {
@@ -471,8 +478,9 @@ function normalizeCraftRecipe(recipe) {
     return {
 
         id:
-            String(recipe?.id ?? "")
-                .trim(),
+            String(
+                recipe?.id ?? ""
+            ).trim(),
 
         category:
             String(
@@ -481,8 +489,14 @@ function normalizeCraftRecipe(recipe) {
             ).trim(),
 
         name:
-            String(recipe?.name ?? "")
-                .trim(),
+            String(
+                recipe?.name ?? ""
+            ).trim(),
+
+        sortOrder:
+            normalizeSortOrder(
+                recipe?.sortOrder
+            ),
 
         description:
             String(
@@ -571,31 +585,6 @@ function normalizeCraftRecipe(recipe) {
 
 
 /* =========================================================
-   数値整形
-========================================================= */
-
-function normalizeAmount(value) {
-
-    const number =
-        Number(value);
-
-
-    if (
-        !Number.isFinite(number) ||
-        number < 0
-    ) {
-
-        return 0;
-
-    }
-
-
-    return number;
-
-}
-
-
-/* =========================================================
    全データ整形
 ========================================================= */
 
@@ -612,9 +601,59 @@ function normalizeCraftRecipes(
     }
 
 
-    return recipes.map(
-        normalizeCraftRecipe
+    const normalized =
+        recipes.map(
+            normalizeCraftRecipe
+        );
+
+
+    /*
+      古い保存データに sortOrder が無い場合、
+      カテゴリーごとの現在順を利用して補完します。
+    */
+
+    const categoryCounters = {};
+
+
+    normalized.forEach(
+        recipe => {
+
+            const category =
+                recipe.category;
+
+
+            if (
+                !categoryCounters[category]
+            ) {
+
+                categoryCounters[category] =
+                    1;
+
+            }
+
+
+            if (
+                recipe.sortOrder ===
+                9999
+            ) {
+
+                recipe.sortOrder =
+                    categoryCounters[
+                    category
+                    ];
+
+            }
+
+
+            categoryCounters[
+                category
+            ]++;
+
+        }
     );
+
+
+    return normalized;
 
 }
 
@@ -680,22 +719,19 @@ function validateCraftRecipes(
 
         const id =
             String(
-                recipe.id ??
-                ""
+                recipe.id ?? ""
             ).trim();
 
 
         const name =
             String(
-                recipe.name ??
-                ""
+                recipe.name ?? ""
             ).trim();
 
 
         const category =
             String(
-                recipe.category ??
-                ""
+                recipe.category ?? ""
             ).trim();
 
 
@@ -752,6 +788,34 @@ function validateCraftRecipes(
                 message:
                     `「${name}」のカテゴリーが正しくありません。`
             };
+
+        }
+
+
+        if (
+            recipe.sortOrder !== undefined
+        ) {
+
+            const sortOrder =
+                Number(
+                    recipe.sortOrder
+                );
+
+
+            if (
+                !Number.isFinite(
+                    sortOrder
+                ) ||
+                sortOrder < 1
+            ) {
+
+                return {
+                    success: false,
+                    message:
+                        `「${name}」の表示順が正しくありません。`
+                };
+
+            }
 
         }
 
@@ -824,8 +888,7 @@ function validateCraftRecipes(
 
                 const materialName =
                     String(
-                        material.name ??
-                        ""
+                        material.name ?? ""
                     ).trim();
 
 
@@ -904,8 +967,7 @@ function validateCraftRecipes(
 
                 const locationName =
                     String(
-                        location.name ??
-                        ""
+                        location.name ?? ""
                     ).trim();
 
 
@@ -938,6 +1000,81 @@ function validateCraftRecipes(
 
 
 /* =========================================================
+   カテゴリーごとの表示順を整理
+========================================================= */
+
+function normalizeCategorySortOrders(
+    recipes
+) {
+
+    const grouped = {};
+
+
+    recipes.forEach(
+        recipe => {
+
+            if (
+                !grouped[
+                recipe.category
+                ]
+            ) {
+
+                grouped[
+                    recipe.category
+                ] = [];
+
+            }
+
+
+            grouped[
+                recipe.category
+            ].push(
+                recipe
+            );
+
+        }
+    );
+
+
+    Object.values(
+        grouped
+    ).forEach(
+        categoryRecipes => {
+
+            categoryRecipes.sort(
+                (a, b) =>
+                    (
+                        Number(
+                            a.sortOrder
+                        ) || 9999
+                    ) -
+                    (
+                        Number(
+                            b.sortOrder
+                        ) || 9999
+                    )
+            );
+
+
+            categoryRecipes.forEach(
+                (recipe, index) => {
+
+                    recipe.sortOrder =
+                        index + 1;
+
+                }
+            );
+
+        }
+    );
+
+
+    return recipes;
+
+}
+
+
+/* =========================================================
    保存
 ========================================================= */
 
@@ -964,9 +1101,15 @@ function saveCraftRecipes(
     }
 
 
-    const normalized =
+    let normalized =
         normalizeCraftRecipes(
             recipes
+        );
+
+
+    normalized =
+        normalizeCategorySortOrders(
+            normalized
         );
 
 
@@ -1036,9 +1179,21 @@ function loadCraftRecipes() {
                 );
 
 
+            /*
+              古い保存データでは sortOrder が
+              存在しない場合があるため、
+              先に整形してから検証します。
+            */
+
+            const normalized =
+                normalizeCraftRecipes(
+                    parsed
+                );
+
+
             const validation =
                 validateCraftRecipes(
-                    parsed
+                    normalized
                 );
 
 
@@ -1046,8 +1201,8 @@ function loadCraftRecipes() {
                 validation.success
             ) {
 
-                return normalizeCraftRecipes(
-                    parsed
+                return normalizeCategorySortOrders(
+                    normalized
                 );
 
             }
@@ -1070,9 +1225,15 @@ function loadCraftRecipes() {
     }
 
 
-    const initialData =
+    let initialData =
         cloneCraftData(
             defaultCraftRecipes
+        );
+
+
+    initialData =
+        normalizeCategorySortOrders(
+            initialData
         );
 
 
@@ -1092,9 +1253,15 @@ function loadCraftRecipes() {
 
 function resetCraftRecipes() {
 
-    const initialData =
+    let initialData =
         cloneCraftData(
             defaultCraftRecipes
+        );
+
+
+    initialData =
+        normalizeCategorySortOrders(
+            initialData
         );
 
 
@@ -1165,8 +1332,7 @@ function findCraftRecipeById(
 
     const id =
         String(
-            recipeId ??
-            ""
+            recipeId ?? ""
         ).trim();
 
 
@@ -1206,20 +1372,55 @@ function getCraftRecipesByCategory(
         loadCraftRecipes();
 
 
-    if (
+    const filtered =
         !category ||
-        category === "all"
-    ) {
+            category === "all"
+            ? recipes
+            : recipes.filter(
+                recipe =>
+                    recipe.category ===
+                    category
+            );
 
-        return recipes;
 
-    }
+    return [...filtered].sort(
+        (a, b) => {
+
+            const categoryCompare =
+                String(
+                    a.category
+                ).localeCompare(
+                    String(
+                        b.category
+                    )
+                );
 
 
-    return recipes.filter(
-        recipe =>
-            recipe.category ===
-            category
+            if (
+                categoryCompare !== 0 &&
+                (
+                    !category ||
+                    category === "all"
+                )
+            ) {
+
+                return categoryCompare;
+
+            }
+
+
+            return (
+                Number(
+                    a.sortOrder
+                ) || 9999
+            ) -
+                (
+                    Number(
+                        b.sortOrder
+                    ) || 9999
+                );
+
+        }
     );
 
 }
@@ -1274,9 +1475,15 @@ function importCraftRecipesJSON(
             );
 
 
+        const normalized =
+            normalizeCraftRecipes(
+                parsed
+            );
+
+
         const validation =
             validateCraftRecipes(
-                parsed
+                normalized
             );
 
 
@@ -1289,15 +1496,15 @@ function importCraftRecipesJSON(
         }
 
 
-        const normalized =
-            normalizeCraftRecipes(
-                parsed
+        const ordered =
+            normalizeCategorySortOrders(
+                normalized
             );
 
 
         const success =
             saveCraftRecipes(
-                normalized
+                ordered
             );
 
 
@@ -1319,7 +1526,7 @@ function importCraftRecipesJSON(
             message:
                 "クラフトデータを読み込みました。",
             recipes:
-                normalized
+                ordered
         };
 
     } catch (error) {
