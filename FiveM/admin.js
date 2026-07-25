@@ -2,7 +2,18 @@
    Craft Recipe Database
    Admin Panel
    admin.js
-   Image Upload Supported
+
+   対応機能
+   ---------------------------------------------------------
+   ・レシピ追加 / 編集 / 削除
+   ・素材追加 / 削除
+   ・クラフト場所追加 / 削除
+   ・画像アップロード / プレビュー / 削除
+   ・カテゴリー別並び替え（▲ ▼）
+   ・JSON読み込み / 書き出し
+   ・自動バックアップ
+   ・バックアップ復元
+   ・初期化
 ========================================================= */
 
 
@@ -19,6 +30,14 @@ const categoryLabels = {
     handicraft: "手芸",
     special: "特殊",
     food: "飲食"
+};
+
+
+const categorySortOrder = {
+    weapon: 1,
+    handicraft: 2,
+    special: 3,
+    food: 4
 };
 
 
@@ -304,7 +323,7 @@ function fileToDataURL(file) {
 
                 reject(
                     new Error(
-                        "画像ファイルではありません。"
+                        "画像ファイルを選択してください。"
                     )
                 );
 
@@ -345,9 +364,7 @@ function fileToDataURL(file) {
             );
 
 
-            reader.readAsDataURL(
-                file
-            );
+            reader.readAsDataURL(file);
 
         }
     );
@@ -356,12 +373,10 @@ function fileToDataURL(file) {
 
 
 /* =========================================================
-   レシピ画像プレビュー
+   レシピ画像
 ========================================================= */
 
-function showRecipeImagePreview(
-    image
-) {
+function showRecipeImagePreview(image) {
 
     if (!image) {
 
@@ -396,10 +411,6 @@ function hideRecipeImagePreview() {
 }
 
 
-/* =========================================================
-   レシピ画像選択
-========================================================= */
-
 async function handleRecipeImageFile() {
 
     const file =
@@ -416,9 +427,7 @@ async function handleRecipeImageFile() {
     try {
 
         const dataURL =
-            await fileToDataURL(
-                file
-            );
+            await fileToDataURL(file);
 
 
         recipeImageInput.value =
@@ -440,23 +449,20 @@ async function handleRecipeImageFile() {
         console.error(error);
 
 
-        showToast(
-            error.message,
-            "error"
-        );
-
-
         recipeImageFile.value =
             "";
+
+
+        showToast(
+            error.message ||
+            "画像の読み込みに失敗しました。",
+            "error"
+        );
 
     }
 
 }
 
-
-/* =========================================================
-   レシピ画像削除
-========================================================= */
 
 function removeRecipeImage() {
 
@@ -487,19 +493,36 @@ function reloadAdminData() {
         recipes = [];
 
 
+        console.error(
+            "data.js が読み込まれていません。"
+        );
+
+
         showToast(
             "data.js が読み込まれていません。",
             "error"
         );
 
 
-        return;
+        return false;
 
     }
 
 
     recipes =
         loadCraftRecipes();
+
+
+    if (
+        !Array.isArray(recipes)
+    ) {
+
+        recipes = [];
+
+    }
+
+
+    return true;
 
 }
 
@@ -649,6 +672,342 @@ function loadBackup() {
 
 
 /* =========================================================
+   並び順
+========================================================= */
+
+function getCategoryRecipesOrdered(
+    category
+) {
+
+    return recipes
+        .filter(
+            recipe =>
+                recipe.category ===
+                category
+        )
+        .sort(
+            (a, b) => {
+
+                const orderA =
+                    Number(
+                        a.sortOrder
+                    ) || 9999;
+
+                const orderB =
+                    Number(
+                        b.sortOrder
+                    ) || 9999;
+
+
+                if (
+                    orderA !== orderB
+                ) {
+
+                    return (
+                        orderA -
+                        orderB
+                    );
+
+                }
+
+
+                return String(
+                    a.name || ""
+                ).localeCompare(
+                    String(
+                        b.name || ""
+                    ),
+                    "ja"
+                );
+
+            }
+        );
+
+}
+
+
+/* =========================================================
+   次の表示順
+========================================================= */
+
+function getNextSortOrder(
+    category
+) {
+
+    const categoryRecipes =
+        recipes.filter(
+            recipe =>
+                recipe.category ===
+                category
+        );
+
+
+    if (
+        categoryRecipes.length === 0
+    ) {
+
+        return 1;
+
+    }
+
+
+    const maxOrder =
+        Math.max(
+            ...categoryRecipes.map(
+                recipe =>
+                    Number(
+                        recipe.sortOrder
+                    ) || 0
+            )
+        );
+
+
+    return (
+        maxOrder + 1
+    );
+
+}
+
+
+/* =========================================================
+   カテゴリーごとの順番を1,2,3...に整理
+========================================================= */
+
+function renumberCategory(
+    category
+) {
+
+    const ordered =
+        getCategoryRecipesOrdered(
+            category
+        );
+
+
+    ordered.forEach(
+        (recipe, index) => {
+
+            recipe.sortOrder =
+                index + 1;
+
+        }
+    );
+
+}
+
+
+/* =========================================================
+   上へ移動
+========================================================= */
+
+function moveRecipeUp(
+    recipeId
+) {
+
+    const recipe =
+        recipes.find(
+            item =>
+                item.id ===
+                recipeId
+        );
+
+
+    if (!recipe) {
+
+        return;
+
+    }
+
+
+    const categoryRecipes =
+        getCategoryRecipesOrdered(
+            recipe.category
+        );
+
+
+    const index =
+        categoryRecipes.findIndex(
+            item =>
+                item.id ===
+                recipeId
+        );
+
+
+    if (
+        index <= 0
+    ) {
+
+        return;
+
+    }
+
+
+    createAutomaticBackup();
+
+
+    const previousRecipe =
+        categoryRecipes[
+        index - 1
+        ];
+
+
+    const currentOrder =
+        Number(
+            recipe.sortOrder
+        ) || (
+            index + 1
+        );
+
+
+    const previousOrder =
+        Number(
+            previousRecipe.sortOrder
+        ) || index;
+
+
+    recipe.sortOrder =
+        previousOrder;
+
+
+    previousRecipe.sortOrder =
+        currentOrder;
+
+
+    renumberCategory(
+        recipe.category
+    );
+
+
+    if (
+        !persistRecipes()
+    ) {
+
+        return;
+
+    }
+
+
+    reloadAdminData();
+
+    renderRecipeList();
+
+
+    showToast(
+        "表示順を変更しました。",
+        "success"
+    );
+
+}
+
+
+/* =========================================================
+   下へ移動
+========================================================= */
+
+function moveRecipeDown(
+    recipeId
+) {
+
+    const recipe =
+        recipes.find(
+            item =>
+                item.id ===
+                recipeId
+        );
+
+
+    if (!recipe) {
+
+        return;
+
+    }
+
+
+    const categoryRecipes =
+        getCategoryRecipesOrdered(
+            recipe.category
+        );
+
+
+    const index =
+        categoryRecipes.findIndex(
+            item =>
+                item.id ===
+                recipeId
+        );
+
+
+    if (
+        index === -1 ||
+        index >=
+        categoryRecipes.length - 1
+    ) {
+
+        return;
+
+    }
+
+
+    createAutomaticBackup();
+
+
+    const nextRecipe =
+        categoryRecipes[
+        index + 1
+        ];
+
+
+    const currentOrder =
+        Number(
+            recipe.sortOrder
+        ) || (
+            index + 1
+        );
+
+
+    const nextOrder =
+        Number(
+            nextRecipe.sortOrder
+        ) || (
+            index + 2
+        );
+
+
+    recipe.sortOrder =
+        nextOrder;
+
+
+    nextRecipe.sortOrder =
+        currentOrder;
+
+
+    renumberCategory(
+        recipe.category
+    );
+
+
+    if (
+        !persistRecipes()
+    ) {
+
+        return;
+
+    }
+
+
+    reloadAdminData();
+
+    renderRecipeList();
+
+
+    showToast(
+        "表示順を変更しました。",
+        "success"
+    );
+
+}
+
+
+/* =========================================================
    レシピ一覧絞り込み
 ========================================================= */
 
@@ -669,7 +1028,8 @@ function getFilteredRecipes() {
 
             const categoryMatch =
                 category === "all" ||
-                recipe.category === category;
+                recipe.category ===
+                category;
 
 
             const materialsText =
@@ -727,13 +1087,63 @@ function getFilteredRecipes() {
 
 
 /* =========================================================
-   一覧描画
+   レシピ一覧描画
 ========================================================= */
 
 function renderRecipeList() {
 
     const filtered =
         getFilteredRecipes();
+
+
+    /*
+      カテゴリー順
+      ↓
+      sortOrder順
+    */
+
+    filtered.sort(
+        (a, b) => {
+
+            const categoryA =
+                categorySortOrder[
+                a.category
+                ] || 999;
+
+            const categoryB =
+                categorySortOrder[
+                b.category
+                ] || 999;
+
+
+            if (
+                categoryA !==
+                categoryB
+            ) {
+
+                return (
+                    categoryA -
+                    categoryB
+                );
+
+            }
+
+
+            return (
+                (
+                    Number(
+                        a.sortOrder
+                    ) || 9999
+                ) -
+                (
+                    Number(
+                        b.sortOrder
+                    ) || 9999
+                )
+            );
+
+        }
+    );
 
 
     adminRecipeList.innerHTML =
@@ -748,14 +1158,14 @@ function renderRecipeList() {
         filtered.length === 0
     ) {
 
-        adminRecipeList.classList.add(
-            "hidden"
-        );
+        adminRecipeList
+            .classList
+            .add("hidden");
 
 
-        adminEmptyState.classList.remove(
-            "hidden"
-        );
+        adminEmptyState
+            .classList
+            .remove("hidden");
 
 
         return;
@@ -763,31 +1173,45 @@ function renderRecipeList() {
     }
 
 
-    adminRecipeList.classList.remove(
-        "hidden"
-    );
+    adminRecipeList
+        .classList
+        .remove("hidden");
 
 
-    adminEmptyState.classList.add(
-        "hidden"
-    );
+    adminEmptyState
+        .classList
+        .add("hidden");
 
 
     filtered.forEach(
         recipe => {
 
-            const button =
-                document.createElement(
-                    "button"
+            const categoryRecipes =
+                getCategoryRecipesOrdered(
+                    recipe.category
                 );
 
 
-            button.type =
-                "button";
+            const categoryIndex =
+                categoryRecipes.findIndex(
+                    item =>
+                        item.id ===
+                        recipe.id
+                );
 
 
-            button.className =
-                "admin-recipe-item";
+            const wrapper =
+                document.createElement(
+                    "div"
+                );
+
+
+            wrapper.className =
+                "admin-recipe-row";
+
+
+            wrapper.dataset.recipeId =
+                recipe.id;
 
 
             if (
@@ -795,21 +1219,42 @@ function renderRecipeList() {
                 selectedRecipeId
             ) {
 
-                button.classList.add(
+                wrapper.classList.add(
                     "active"
                 );
 
             }
 
 
+            /* =========================
+               レシピ選択ボタン
+            ========================= */
+
+            const mainButton =
+                document.createElement(
+                    "button"
+                );
+
+
+            mainButton.type =
+                "button";
+
+
+            mainButton.className =
+                "admin-recipe-item";
+
+
+            mainButton.dataset.recipeId =
+                recipe.id;
+
+
             const label =
                 categoryLabels[
                 recipe.category
-                ] ||
-                "その他";
+                ] || "その他";
 
 
-            button.innerHTML = `
+            mainButton.innerHTML = `
 
         <span class="admin-recipe-name">
 
@@ -839,6 +1284,16 @@ function renderRecipeList() {
           </span>
 
 
+          <span class="sort-order-label">
+
+            順番:
+            ${Number(
+                recipe.sortOrder
+            ) || "-"}
+
+          </span>
+
+
           <span>
 
             ${escapeHTML(
@@ -852,7 +1307,7 @@ function renderRecipeList() {
       `;
 
 
-            button.addEventListener(
+            mainButton.addEventListener(
                 "click",
                 () => {
 
@@ -864,8 +1319,146 @@ function renderRecipeList() {
             );
 
 
+            /* =========================
+               並び替え操作
+            ========================= */
+
+            const sortActions =
+                document.createElement(
+                    "div"
+                );
+
+
+            sortActions.className =
+                "recipe-sort-actions";
+
+
+            /* 上へ */
+
+            const upButton =
+                document.createElement(
+                    "button"
+                );
+
+
+            upButton.type =
+                "button";
+
+
+            upButton.className =
+                "recipe-sort-button";
+
+
+            upButton.textContent =
+                "▲";
+
+
+            upButton.title =
+                "上へ移動";
+
+
+            upButton.setAttribute(
+                "aria-label",
+                `${recipe.name}を上へ移動`
+            );
+
+
+            upButton.disabled =
+                categoryIndex <= 0;
+
+
+            upButton.addEventListener(
+                "click",
+                event => {
+
+                    event.preventDefault();
+
+                    event.stopPropagation();
+
+
+                    moveRecipeUp(
+                        recipe.id
+                    );
+
+                }
+            );
+
+
+            /* 下へ */
+
+            const downButton =
+                document.createElement(
+                    "button"
+                );
+
+
+            downButton.type =
+                "button";
+
+
+            downButton.className =
+                "recipe-sort-button";
+
+
+            downButton.textContent =
+                "▼";
+
+
+            downButton.title =
+                "下へ移動";
+
+
+            downButton.setAttribute(
+                "aria-label",
+                `${recipe.name}を下へ移動`
+            );
+
+
+            downButton.disabled =
+                categoryIndex === -1 ||
+                categoryIndex >=
+                categoryRecipes.length - 1;
+
+
+            downButton.addEventListener(
+                "click",
+                event => {
+
+                    event.preventDefault();
+
+                    event.stopPropagation();
+
+
+                    moveRecipeDown(
+                        recipe.id
+                    );
+
+                }
+            );
+
+
+            sortActions.appendChild(
+                upButton
+            );
+
+
+            sortActions.appendChild(
+                downButton
+            );
+
+
+            wrapper.appendChild(
+                mainButton
+            );
+
+
+            wrapper.appendChild(
+                sortActions
+            );
+
+
             adminRecipeList.appendChild(
-                button
+                wrapper
             );
 
         }
@@ -905,9 +1498,11 @@ function selectRecipe(recipeId) {
 
     openEditor();
 
+
     fillEditor(
         recipe
     );
+
 
     renderRecipeList();
 
@@ -953,6 +1548,17 @@ function closeEditor() {
 
 
     removeRecipeImage();
+
+
+    materialsEditor.innerHTML =
+        "";
+
+
+    locationsEditor.innerHTML =
+        "";
+
+
+    updateDynamicEmptyStates();
 
 
     renderRecipeList();
@@ -1048,18 +1654,30 @@ function createNewRecipe() {
         true;
 
 
+    const initialCategory =
+        adminCategoryFilter.value !==
+            "all"
+            ? adminCategoryFilter.value
+            : "weapon";
+
+
     const newRecipe = {
 
         id:
             generateRecipeId(
-                "weapon"
+                initialCategory
             ),
 
         category:
-            "weapon",
+            initialCategory,
 
         name:
             "",
+
+        sortOrder:
+            getNextSortOrder(
+                initialCategory
+            ),
 
         description:
             "",
@@ -1306,9 +1924,7 @@ function updateMaterialLabels() {
                     );
 
 
-                if (
-                    title
-                ) {
+                if (title) {
 
                     title.textContent =
                         `素材 ${index + 1}`;
@@ -1345,88 +1961,6 @@ function renderLocationEditors(
 
 
     updateDynamicEmptyStates();
-
-}
-
-
-/* =========================================================
-   場所画像プレビュー
-========================================================= */
-
-function setLocationImagePreview(
-    item,
-    type,
-    image
-) {
-
-    const isField =
-        type === "field";
-
-
-    const input =
-        item.querySelector(
-            isField
-                ? ".location-field-image-input"
-                : ".location-map-image-input"
-        );
-
-
-    const fileInput =
-        item.querySelector(
-            isField
-                ? ".location-field-image-file"
-                : ".location-map-image-file"
-        );
-
-
-    const previewWrap =
-        item.querySelector(
-            isField
-                ? ".location-field-preview-wrap"
-                : ".location-map-preview-wrap"
-        );
-
-
-    const preview =
-        item.querySelector(
-            isField
-                ? ".location-field-preview"
-                : ".location-map-preview"
-        );
-
-
-    input.value =
-        image ||
-        "";
-
-
-    fileInput.value =
-        "";
-
-
-    if (
-        image
-    ) {
-
-        preview.src =
-            image;
-
-
-        previewWrap
-            .classList
-            .remove("hidden");
-
-    } else {
-
-        preview.src =
-            "";
-
-
-        previewWrap
-            .classList
-            .add("hidden");
-
-    }
 
 }
 
@@ -1581,6 +2115,16 @@ function addLocationEditor(
             .classList
             .remove("hidden");
 
+    } else {
+
+        fieldPreview.src =
+            "";
+
+
+        fieldPreviewWrap
+            .classList
+            .add("hidden");
+
     }
 
 
@@ -1595,6 +2139,16 @@ function addLocationEditor(
         mapPreviewWrap
             .classList
             .remove("hidden");
+
+    } else {
+
+        mapPreview.src =
+            "";
+
+
+        mapPreviewWrap
+            .classList
+            .add("hidden");
 
     }
 
@@ -1649,14 +2203,15 @@ function addLocationEditor(
                 console.error(error);
 
 
-                showToast(
-                    error.message,
-                    "error"
-                );
-
-
                 fieldImageFile.value =
                     "";
+
+
+                showToast(
+                    error.message ||
+                    "画像の読み込みに失敗しました。",
+                    "error"
+                );
 
             }
 
@@ -1738,14 +2293,15 @@ function addLocationEditor(
                 console.error(error);
 
 
-                showToast(
-                    error.message,
-                    "error"
-                );
-
-
                 mapImageFile.value =
                     "";
+
+
+                showToast(
+                    error.message ||
+                    "画像の読み込みに失敗しました。",
+                    "error"
+                );
 
             }
 
@@ -1827,9 +2383,7 @@ function updateLocationLabels() {
                     );
 
 
-                if (
-                    title
-                ) {
+                if (title) {
 
                     title.textContent =
                         `クラフト場所 ${index + 1}`;
@@ -1848,16 +2402,22 @@ function updateLocationLabels() {
 
 function updateDynamicEmptyStates() {
 
-    materialsEmpty.classList.toggle(
-        "hidden",
-        materialsEditor.children.length > 0
-    );
+    materialsEmpty
+        .classList
+        .toggle(
+            "hidden",
+            materialsEditor.children.length >
+            0
+        );
 
 
-    locationsEmpty.classList.toggle(
-        "hidden",
-        locationsEditor.children.length > 0
-    );
+    locationsEmpty
+        .classList
+        .toggle(
+            "hidden",
+            locationsEditor.children.length >
+            0
+        );
 
 }
 
@@ -1891,7 +2451,9 @@ function collectMaterials() {
 
 
                 if (
-                    !Number.isFinite(amount) ||
+                    !Number.isFinite(
+                        amount
+                    ) ||
                     amount < 0
                 ) {
 
@@ -1971,6 +2533,68 @@ function collectLocations() {
 
 function collectRecipeFromForm() {
 
+    const existingRecipe =
+        recipes.find(
+            recipe =>
+                recipe.id ===
+                selectedRecipeId
+        );
+
+
+    const category =
+        recipeCategoryInput.value;
+
+
+    let sortOrder;
+
+
+    /*
+      新規作成
+    */
+
+    if (
+        isCreatingNewRecipe
+    ) {
+
+        sortOrder =
+            getNextSortOrder(
+                category
+            );
+
+    }
+
+    /*
+      同カテゴリーで編集
+    */
+
+    else if (
+        existingRecipe &&
+        existingRecipe.category ===
+        category
+    ) {
+
+        sortOrder =
+            Number(
+                existingRecipe.sortOrder
+            ) || 1;
+
+    }
+
+    /*
+      カテゴリー変更
+      → 新カテゴリーの最後へ
+    */
+
+    else {
+
+        sortOrder =
+            getNextSortOrder(
+                category
+            );
+
+    }
+
+
     return {
 
         id:
@@ -1978,11 +2602,14 @@ function collectRecipeFromForm() {
                 .trim(),
 
         category:
-            recipeCategoryInput.value,
+            category,
 
         name:
             recipeNameInput.value
                 .trim(),
+
+        sortOrder:
+            sortOrder,
 
         description:
             recipeDescriptionInput.value
@@ -2015,9 +2642,27 @@ function handleSave(event) {
     event.preventDefault();
 
 
+    const oldRecipe =
+        selectedRecipeId
+            ? recipes.find(
+                item =>
+                    item.id ===
+                    selectedRecipeId
+            )
+            : null;
+
+
+    const oldCategory =
+        oldRecipe
+            ? oldRecipe.category
+            : null;
+
+
     const recipe =
         collectRecipeFromForm();
 
+
+    /* ID */
 
     if (
         recipe.id === ""
@@ -2036,6 +2681,8 @@ function handleSave(event) {
     }
 
 
+    /* 名前 */
+
     if (
         recipe.name === ""
     ) {
@@ -2052,6 +2699,8 @@ function handleSave(event) {
 
     }
 
+
+    /* ID重複 */
 
     const duplicate =
         recipes.some(
@@ -2097,6 +2746,10 @@ function handleSave(event) {
     createAutomaticBackup();
 
 
+    /* =========================
+       新規
+    ========================= */
+
     if (
         isCreatingNewRecipe
     ) {
@@ -2109,7 +2762,13 @@ function handleSave(event) {
         isCreatingNewRecipe =
             false;
 
-    } else {
+    }
+
+    /* =========================
+       編集
+    ========================= */
+
+    else {
 
         const index =
             recipes.findIndex(
@@ -2144,6 +2803,29 @@ function handleSave(event) {
         recipe.id;
 
 
+    /*
+      カテゴリー変更された場合は
+      元カテゴリーと新カテゴリーの番号を整理
+    */
+
+    if (
+        oldCategory &&
+        oldCategory !==
+        recipe.category
+    ) {
+
+        renumberCategory(
+            oldCategory
+        );
+
+    }
+
+
+    renumberCategory(
+        recipe.category
+    );
+
+
     if (
         !persistRecipes()
     ) {
@@ -2153,9 +2835,26 @@ function handleSave(event) {
     }
 
 
-    fillEditor(
-        recipe
-    );
+    reloadAdminData();
+
+
+    const savedRecipe =
+        recipes.find(
+            item =>
+                item.id ===
+                selectedRecipeId
+        );
+
+
+    if (
+        savedRecipe
+    ) {
+
+        fillEditor(
+            savedRecipe
+        );
+
+    }
 
 
     renderRecipeList();
@@ -2246,12 +2945,23 @@ function deleteSelectedRecipe() {
     }
 
 
+    const category =
+        recipes[
+            index
+        ].category;
+
+
     createAutomaticBackup();
 
 
     recipes.splice(
         index,
         1
+    );
+
+
+    renumberCategory(
+        category
     );
 
 
@@ -2262,6 +2972,9 @@ function deleteSelectedRecipe() {
         return;
 
     }
+
+
+    reloadAdminData();
 
 
     closeDeleteModal();
@@ -2405,6 +3118,7 @@ function downloadExportData() {
 
     link.click();
 
+
     link.remove();
 
 
@@ -2484,6 +3198,9 @@ async function handleImportFile() {
             await file.text();
 
     } catch (error) {
+
+        console.error(error);
+
 
         showToast(
             "ファイルの読み込みに失敗しました。",
@@ -2766,6 +3483,12 @@ function restoreBackup() {
         "function"
     ) {
 
+        showToast(
+            "データ保存機能が利用できません。",
+            "error"
+        );
+
+
         return;
 
     }
@@ -2792,10 +3515,7 @@ function restoreBackup() {
     }
 
 
-    recipes =
-        cloneData(
-            backup.recipes
-        );
+    reloadAdminData();
 
 
     closeBackupModal();
@@ -2809,6 +3529,57 @@ function restoreBackup() {
         "バックアップを復元しました。",
         "success"
     );
+
+}
+
+
+/* =========================================================
+   外部タブ等でデータ更新された場合
+========================================================= */
+
+function handleCraftDataUpdated() {
+
+    const currentId =
+        selectedRecipeId;
+
+
+    reloadAdminData();
+
+
+    renderRecipeList();
+
+
+    if (
+        !currentId ||
+        isCreatingNewRecipe
+    ) {
+
+        return;
+
+    }
+
+
+    const updatedRecipe =
+        recipes.find(
+            recipe =>
+                recipe.id ===
+                currentId
+        );
+
+
+    if (
+        updatedRecipe
+    ) {
+
+        fillEditor(
+            updatedRecipe
+        );
+
+    } else {
+
+        closeEditor();
+
+    }
 
 }
 
@@ -2871,6 +3642,8 @@ function showToast(
    イベント
 ========================================================= */
 
+/* 新規 */
+
 addRecipeButton.addEventListener(
     "click",
     createNewRecipe
@@ -2883,17 +3656,23 @@ emptyAddRecipeButton.addEventListener(
 );
 
 
+/* 検索 */
+
 adminSearchInput.addEventListener(
     "input",
     renderRecipeList
 );
 
 
+/* カテゴリー絞り込み */
+
 adminCategoryFilter.addEventListener(
     "change",
     renderRecipeList
 );
 
+
+/* 編集カテゴリー */
 
 recipeCategoryInput.addEventListener(
     "change",
@@ -2969,7 +3748,7 @@ confirmDeleteButton.addEventListener(
 );
 
 
-/* 読込 */
+/* JSON読込 */
 
 importButton.addEventListener(
     "click",
@@ -2989,7 +3768,7 @@ executeImportButton.addEventListener(
 );
 
 
-/* 書き出し */
+/* JSON書き出し */
 
 exportButton.addEventListener(
     "click",
@@ -3038,7 +3817,7 @@ restoreBackupButton.addEventListener(
 
 
 /* =========================================================
-   モーダル閉じる
+   モーダルを閉じる
 ========================================================= */
 
 document
@@ -3206,16 +3985,64 @@ document.addEventListener(
 
 
 /* =========================================================
+   data.js データ更新イベント
+========================================================= */
+
+window.addEventListener(
+    "craftDataUpdated",
+    handleCraftDataUpdated
+);
+
+
+/* =========================================================
    初期化
 ========================================================= */
 
 function initializeAdmin() {
 
-    reloadAdminData();
+    const loaded =
+        reloadAdminData();
+
+
+    if (
+        !loaded
+    ) {
+
+        return;
+
+    }
+
+
+    /*
+      既存データのカテゴリー内順番を整理
+    */
+
+    Object.keys(
+        categoryLabels
+    ).forEach(
+        category => {
+
+            renumberCategory(
+                category
+            );
+
+        }
+    );
+
+
+    /*
+      sortOrder追加後のデータを
+      localStorageへ一度保存
+    */
+
+    persistRecipes();
+
 
     renderRecipeList();
 
+
     updateDynamicEmptyStates();
+
 
     hideRecipeImagePreview();
 
