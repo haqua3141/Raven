@@ -2,6 +2,21 @@
    Craft Recipe Database
    Frontend
    script.js
+
+   対応機能
+   ---------------------------------------------------------
+   ・レシピ一覧
+   ・カテゴリー切り替え
+   ・検索
+   ・管理画面で設定した表示順
+   ・名前順 A → Z
+   ・名前順 Z → A
+   ・必要素材の自動計算
+   ・クラフト場所
+   ・現地画像 / マップ画像
+   ・画像拡大
+   ・スマホメニュー
+   ・データ更新反映
 ========================================================= */
 
 
@@ -13,37 +28,61 @@ const categoryData = {
 
     all: {
         name: "すべてのクラフト",
+
         description:
             "登録されているクラフトレシピから必要な素材数を確認できます。",
-        label: "すべて"
+
+        label: "すべて",
+
+        sortOrder: 0
     },
+
 
     weapon: {
         name: "武器クラフト",
+
         description:
             "武器クラフトのレシピ・必要素材・クラフト場所を確認できます。",
-        label: "武器"
+
+        label: "武器",
+
+        sortOrder: 1
     },
+
 
     handicraft: {
         name: "手芸クラフト",
+
         description:
             "衣服やバッグなどの手芸クラフトを確認できます。",
-        label: "手芸"
+
+        label: "手芸",
+
+        sortOrder: 2
     },
+
 
     special: {
         name: "特殊クラフト",
+
         description:
             "特殊アイテムのレシピやクラフト場所を確認できます。",
-        label: "特殊"
+
+        label: "特殊",
+
+        sortOrder: 3
     },
+
 
     food: {
         name: "飲食クラフト",
+
         description:
             "飲食物のレシピや必要素材を確認できます。",
-        label: "飲食"
+
+        label: "飲食",
+
+        sortOrder: 4
     }
 
 };
@@ -56,86 +95,119 @@ const categoryData = {
 const recipeGrid =
     document.getElementById("recipeGrid");
 
+
 const recipeCount =
     document.getElementById("recipeCount");
+
 
 const searchInput =
     document.getElementById("searchInput");
 
+
 const categorySelect =
     document.getElementById("categorySelect");
+
 
 const sortSelect =
     document.getElementById("sortSelect");
 
+
 const categoryTitle =
     document.getElementById("categoryTitle");
+
 
 const categoryDescription =
     document.getElementById("categoryDescription");
 
+
 const emptyState =
     document.getElementById("emptyState");
 
+
 const navItems =
-    document.querySelectorAll(".nav-item");
+    document.querySelectorAll(
+        ".nav-item"
+    );
 
 
-/* レシピ詳細モーダル */
+/* =========================================================
+   レシピ詳細モーダル
+========================================================= */
 
 const recipeModal =
     document.getElementById("recipeModal");
 
+
 const modalCategory =
     document.getElementById("modalCategory");
+
 
 const modalRecipeName =
     document.getElementById("modalRecipeName");
 
+
 const craftQuantity =
     document.getElementById("craftQuantity");
+
 
 const quantityMinus =
     document.getElementById("quantityMinus");
 
+
 const quantityPlus =
     document.getElementById("quantityPlus");
+
 
 const materialList =
     document.getElementById("materialList");
 
+
 const locationList =
     document.getElementById("locationList");
 
+
 const modalNotes =
     document.getElementById("modalNotes");
+
 
 const notesSection =
     document.getElementById("notesSection");
 
 
-/* 画像拡大モーダル */
+/* =========================================================
+   画像モーダル
+========================================================= */
 
 const imageModal =
     document.getElementById("imageModal");
 
+
 const enlargedImage =
     document.getElementById("enlargedImage");
 
+
 const enlargedImageCaption =
-    document.getElementById("enlargedImageCaption");
+    document.getElementById(
+        "enlargedImageCaption"
+    );
 
 
-/* スマホメニュー */
+/* =========================================================
+   スマホメニュー
+========================================================= */
 
 const menuButton =
     document.getElementById("menuButton");
 
+
 const sidebar =
     document.getElementById("sidebar");
 
+
 const sidebarOverlay =
-    document.getElementById("sidebarOverlay");
+    document.getElementById(
+        "sidebarOverlay"
+    );
 
 
 /* =========================================================
@@ -144,11 +216,14 @@ const sidebarOverlay =
 
 let recipes = [];
 
+
 let currentCategory =
     "all";
 
+
 let currentRecipe =
     null;
+
 
 let currentQuantity =
     1;
@@ -188,7 +263,7 @@ function escapeHTML(value) {
 
 
 /* =========================================================
-   共通データ読み込み
+   データ読み込み
 ========================================================= */
 
 function reloadRecipeData() {
@@ -202,7 +277,9 @@ function reloadRecipeData() {
             "data.js が読み込まれていません。"
         );
 
+
         recipes = [];
+
 
         return false;
 
@@ -228,7 +305,7 @@ function reloadRecipeData() {
 
 
 /* =========================================================
-   カテゴリー情報取得
+   カテゴリー情報
 ========================================================= */
 
 function getCategoryInfo(
@@ -241,7 +318,8 @@ function getCategoryInfo(
         ] || {
             name: "その他",
             description: "",
-            label: "その他"
+            label: "その他",
+            sortOrder: 999
         }
     );
 
@@ -249,7 +327,7 @@ function getCategoryInfo(
 
 
 /* =========================================================
-   検索文字列
+   検索用文字列
 ========================================================= */
 
 function createSearchText(
@@ -308,6 +386,105 @@ function createSearchText(
 
 
 /* =========================================================
+   標準表示順
+========================================================= */
+
+function sortRecipesByCustomOrder(
+    recipesToSort
+) {
+
+    return [...recipesToSort]
+        .sort(
+            (a, b) => {
+
+                /*
+                  「すべて」表示の場合は
+                  カテゴリー順も考慮
+                */
+
+                if (
+                    currentCategory ===
+                    "all"
+                ) {
+
+                    const categoryA =
+                        getCategoryInfo(
+                            a.category
+                        ).sortOrder;
+
+
+                    const categoryB =
+                        getCategoryInfo(
+                            b.category
+                        ).sortOrder;
+
+
+                    if (
+                        categoryA !==
+                        categoryB
+                    ) {
+
+                        return (
+                            categoryA -
+                            categoryB
+                        );
+
+                    }
+
+                }
+
+
+                /*
+                  同カテゴリーでは
+                  管理画面で設定したsortOrder
+                */
+
+                const orderA =
+                    Number(
+                        a.sortOrder
+                    ) || 9999;
+
+
+                const orderB =
+                    Number(
+                        b.sortOrder
+                    ) || 9999;
+
+
+                if (
+                    orderA !==
+                    orderB
+                ) {
+
+                    return (
+                        orderA -
+                        orderB
+                    );
+
+                }
+
+
+                /*
+                  同じsortOrderだった場合の
+                  安定した並び順
+                */
+
+                return String(
+                    a.name || ""
+                ).localeCompare(
+                    String(
+                        b.name || ""
+                    ),
+                    "ja"
+                );
+
+            }
+        );
+
+}
+
+
+/* =========================================================
    絞り込み・並び替え
 ========================================================= */
 
@@ -348,51 +525,72 @@ function getFilteredRecipes() {
         );
 
 
-    const result =
-        [...filtered];
-
+    /*
+      ユーザー側の並び替え
+    */
 
     switch (
     sortSelect.value
     ) {
 
-        case "nameAsc":
+        /* =========================
+           管理者設定順
+        ========================= */
 
-            result.sort(
-                (a, b) =>
-                    String(
-                        a.name || ""
-                    ).localeCompare(
-                        String(
-                            b.name || ""
-                        ),
-                        "ja"
-                    )
+        case "default":
+
+            return sortRecipesByCustomOrder(
+                filtered
             );
 
-            break;
 
+        /* =========================
+           名前昇順
+        ========================= */
+
+        case "nameAsc":
+
+            return [...filtered]
+                .sort(
+                    (a, b) =>
+                        String(
+                            a.name || ""
+                        ).localeCompare(
+                            String(
+                                b.name || ""
+                            ),
+                            "ja"
+                        )
+                );
+
+
+        /* =========================
+           名前降順
+        ========================= */
 
         case "nameDesc":
 
-            result.sort(
-                (a, b) =>
-                    String(
-                        b.name || ""
-                    ).localeCompare(
+            return [...filtered]
+                .sort(
+                    (a, b) =>
                         String(
-                            a.name || ""
-                        ),
-                        "ja"
-                    )
+                            b.name || ""
+                        ).localeCompare(
+                            String(
+                                a.name || ""
+                            ),
+                            "ja"
+                        )
+                );
+
+
+        default:
+
+            return sortRecipesByCustomOrder(
+                filtered
             );
 
-            break;
-
     }
-
-
-    return result;
 
 }
 
@@ -420,26 +618,29 @@ function renderRecipes() {
         0
     ) {
 
-        recipeGrid.classList.add(
-            "hidden"
-        );
+        recipeGrid
+            .classList
+            .add("hidden");
 
-        emptyState.classList.remove(
-            "hidden"
-        );
+
+        emptyState
+            .classList
+            .remove("hidden");
+
 
         return;
 
     }
 
 
-    recipeGrid.classList.remove(
-        "hidden"
-    );
+    recipeGrid
+        .classList
+        .remove("hidden");
 
-    emptyState.classList.add(
-        "hidden"
-    );
+
+    emptyState
+        .classList
+        .add("hidden");
 
 
     filteredRecipes.forEach(
@@ -497,13 +698,21 @@ function createRecipeCard(
         "recipe-card";
 
 
+    /* =========================
+       画像
+    ========================= */
+
     const imageHTML =
         recipe.image
             ? `
         <img
           class="recipe-image"
-          src="${escapeHTML(recipe.image)}"
-          alt="${escapeHTML(recipe.name)}"
+          src="${escapeHTML(
+                recipe.image
+            )}"
+          alt="${escapeHTML(
+                recipe.name
+            )}"
           loading="lazy"
         >
 
@@ -534,13 +743,16 @@ function createRecipeCard(
 
     <div class="recipe-card-body">
 
+
       <div class="recipe-card-top">
 
         <h3>
+
           ${escapeHTML(
         recipe.name ||
         "名称未設定"
     )}
+
         </h3>
 
 
@@ -552,9 +764,11 @@ function createRecipeCard(
     )}
           "
         >
+
           ${escapeHTML(
         categoryInfo.label
     )}
+
         </span>
 
       </div>
@@ -573,15 +787,20 @@ function createRecipeCard(
       <div class="recipe-meta">
 
         <span class="meta-item">
+
           🧱
           ${materials.length}
           種類
+
         </span>
 
+
         <span class="meta-item">
+
           📍
           ${locations.length}
           箇所
+
         </span>
 
       </div>
@@ -590,7 +809,9 @@ function createRecipeCard(
       <button
         type="button"
         class="recipe-detail-button"
-        data-recipe-id="${escapeHTML(recipe.id)}"
+        data-recipe-id="${escapeHTML(
+        recipe.id
+    )}"
       >
         詳細・素材計算を見る
       </button>
@@ -600,7 +821,9 @@ function createRecipeCard(
   `;
 
 
-    /* 画像エラー時 */
+    /* =========================
+       画像エラー
+    ========================= */
 
     const recipeImage =
         article.querySelector(
@@ -641,7 +864,9 @@ function createRecipeCard(
     }
 
 
-    /* 詳細 */
+    /* =========================
+       詳細
+    ========================= */
 
     const detailButton =
         article.querySelector(
@@ -725,7 +950,7 @@ function changeCategory(
 
 
 /* =========================================================
-   詳細モーダル
+   詳細モーダルを開く
 ========================================================= */
 
 function openRecipeModal(
@@ -763,22 +988,26 @@ function openRecipeModal(
 
     updateRecipeModalHeader();
 
+
     renderMaterials();
 
+
     renderLocations();
+
 
     renderNotes();
 
 
-    recipeModal.classList.add(
-        "active"
-    );
+    recipeModal
+        .classList
+        .add("active");
 
 
-    recipeModal.setAttribute(
-        "aria-hidden",
-        "false"
-    );
+    recipeModal
+        .setAttribute(
+            "aria-hidden",
+            "false"
+        );
 
 
     document.body.style.overflow =
@@ -788,7 +1017,7 @@ function openRecipeModal(
 
 
 /* =========================================================
-   詳細モーダルヘッダー
+   詳細ヘッダー
 ========================================================= */
 
 function updateRecipeModalHeader() {
@@ -824,20 +1053,21 @@ function updateRecipeModalHeader() {
 
 
 /* =========================================================
-   モーダル閉じる
+   詳細モーダルを閉じる
 ========================================================= */
 
 function closeRecipeModal() {
 
-    recipeModal.classList.remove(
-        "active"
-    );
+    recipeModal
+        .classList
+        .remove("active");
 
 
-    recipeModal.setAttribute(
-        "aria-hidden",
-        "true"
-    );
+    recipeModal
+        .setAttribute(
+            "aria-hidden",
+            "true"
+        );
 
 
     currentRecipe =
@@ -855,7 +1085,7 @@ function closeRecipeModal() {
 
 
 /* =========================================================
-   素材
+   素材描画
 ========================================================= */
 
 function renderMaterials() {
@@ -895,7 +1125,9 @@ function renderMaterials() {
         row.innerHTML = `
 
       <td colspan="3">
+
         必要素材は登録されていません。
+
       </td>
 
     `;
@@ -904,6 +1136,7 @@ function renderMaterials() {
         materialList.appendChild(
             row
         );
+
 
         return;
 
@@ -973,7 +1206,7 @@ function renderMaterials() {
 
 
 /* =========================================================
-   数値表示
+   数値
 ========================================================= */
 
 function formatNumber(
@@ -1098,6 +1331,7 @@ function renderLocations() {
             card
         );
 
+
         return;
 
     }
@@ -1178,7 +1412,9 @@ function renderLocations() {
       `;
 
 
-            /* 画像クリック */
+            /* =========================
+               画像クリック
+            ========================= */
 
             card
                 .querySelectorAll(
@@ -1203,7 +1439,9 @@ function renderLocations() {
                 );
 
 
-            /* 画像エラー */
+            /* =========================
+               画像読み込み失敗
+            ========================= */
 
             card
                 .querySelectorAll(
@@ -1238,7 +1476,9 @@ function renderLocations() {
                                 button.innerHTML = `
 
                   <span class="location-placeholder">
+
                     画像未登録
+
                   </span>
 
                 `;
@@ -1299,20 +1539,32 @@ function createLocationImageHTML(
     <button
       type="button"
       class="location-image-button"
-      data-image="${escapeHTML(image)}"
-      data-caption="${escapeHTML(caption)}"
-      aria-label="${escapeHTML(caption)}を拡大"
+      data-image="${escapeHTML(
+        image
+    )}"
+      data-caption="${escapeHTML(
+        caption
+    )}"
+      aria-label="${escapeHTML(
+        caption
+    )}を拡大"
     >
 
       <img
-        src="${escapeHTML(image)}"
-        alt="${escapeHTML(caption)}"
+        src="${escapeHTML(
+        image
+    )}"
+        alt="${escapeHTML(
+        caption
+    )}"
         loading="lazy"
       >
 
 
       <span class="location-image-label">
+
         ${escapeHTML(label)}
+
       </span>
 
     </button>
@@ -1348,9 +1600,9 @@ function renderNotes() {
         notes === ""
     ) {
 
-        notesSection.classList.add(
-            "hidden"
-        );
+        notesSection
+            .classList
+            .add("hidden");
 
 
         modalNotes.textContent =
@@ -1362,9 +1614,9 @@ function renderNotes() {
     }
 
 
-    notesSection.classList.remove(
-        "hidden"
-    );
+    notesSection
+        .classList
+        .remove("hidden");
 
 
     modalNotes.textContent =
@@ -1403,15 +1655,16 @@ function openImageModal(
         caption;
 
 
-    imageModal.classList.add(
-        "active"
-    );
+    imageModal
+        .classList
+        .add("active");
 
 
-    imageModal.setAttribute(
-        "aria-hidden",
-        "false"
-    );
+    imageModal
+        .setAttribute(
+            "aria-hidden",
+            "false"
+        );
 
 }
 
@@ -1422,15 +1675,16 @@ function openImageModal(
 
 function closeImageModal() {
 
-    imageModal.classList.remove(
-        "active"
-    );
+    imageModal
+        .classList
+        .remove("active");
 
 
-    imageModal.setAttribute(
-        "aria-hidden",
-        "true"
-    );
+    imageModal
+        .setAttribute(
+            "aria-hidden",
+            "true"
+        );
 
 
     enlargedImage.src =
@@ -1448,33 +1702,33 @@ function closeImageModal() {
 
 
 /* =========================================================
-   スマホメニュー
+   スマホサイドバー
 ========================================================= */
 
 function openSidebar() {
 
-    sidebar.classList.add(
-        "open"
-    );
+    sidebar
+        .classList
+        .add("open");
 
 
-    sidebarOverlay.classList.add(
-        "active"
-    );
+    sidebarOverlay
+        .classList
+        .add("active");
 
 }
 
 
 function closeSidebar() {
 
-    sidebar.classList.remove(
-        "open"
-    );
+    sidebar
+        .classList
+        .remove("open");
 
 
-    sidebarOverlay.classList.remove(
-        "active"
-    );
+    sidebarOverlay
+        .classList
+        .remove("active");
 
 }
 
@@ -1499,7 +1753,7 @@ function toggleSidebar() {
 
 
 /* =========================================================
-   データ更新時
+   データ変更反映
 ========================================================= */
 
 function handleCraftDataUpdated() {
@@ -1512,14 +1766,20 @@ function handleCraftDataUpdated() {
 
     reloadRecipeData();
 
+
     renderRecipes();
 
 
+    /*
+      詳細モーダルを開いていなければ
+      ここで終了
+    */
+
     if (
         !openedRecipeId ||
-        !recipeModal.classList.contains(
-            "active"
-        )
+        !recipeModal
+            .classList
+            .contains("active")
     ) {
 
         return;
@@ -1535,16 +1795,25 @@ function handleCraftDataUpdated() {
         );
 
 
+    /*
+      開いていたレシピが削除された
+    */
+
     if (
         !updatedRecipe
     ) {
 
         closeRecipeModal();
 
+
         return;
 
     }
 
+
+    /*
+      最新データへ更新
+    */
 
     currentRecipe =
         updatedRecipe;
@@ -1552,9 +1821,12 @@ function handleCraftDataUpdated() {
 
     updateRecipeModalHeader();
 
+
     renderMaterials();
 
+
     renderLocations();
+
 
     renderNotes();
 
@@ -1588,7 +1860,7 @@ categorySelect.addEventListener(
 
 
 /* =========================================================
-   並び替え
+   並び替えセレクト
 ========================================================= */
 
 sortSelect.addEventListener(
@@ -1685,7 +1957,7 @@ craftQuantity.addEventListener(
 
 
 /* =========================================================
-   詳細モーダルを閉じる
+   詳細モーダル
 ========================================================= */
 
 document
@@ -1705,7 +1977,7 @@ document
 
 
 /* =========================================================
-   画像モーダルを閉じる
+   画像モーダル
 ========================================================= */
 
 document
@@ -1741,7 +2013,7 @@ sidebarOverlay.addEventListener(
 
 
 /* =========================================================
-   ESCキー
+   ESC
 ========================================================= */
 
 document.addEventListener(
@@ -1759,12 +2031,13 @@ document.addEventListener(
 
 
         if (
-            imageModal.classList.contains(
-                "active"
-            )
+            imageModal
+                .classList
+                .contains("active")
         ) {
 
             closeImageModal();
+
 
             return;
 
@@ -1772,12 +2045,13 @@ document.addEventListener(
 
 
         if (
-            recipeModal.classList.contains(
-                "active"
-            )
+            recipeModal
+                .classList
+                .contains("active")
         ) {
 
             closeRecipeModal();
+
 
             return;
 
@@ -1791,7 +2065,7 @@ document.addEventListener(
 
 
 /* =========================================================
-   ウィンドウサイズ変更
+   リサイズ
 ========================================================= */
 
 window.addEventListener(
@@ -1812,7 +2086,7 @@ window.addEventListener(
 
 
 /* =========================================================
-   管理画面からの更新
+   data.js更新イベント
 ========================================================= */
 
 window.addEventListener(
@@ -1827,7 +2101,21 @@ window.addEventListener(
 
 function initializeApp() {
 
-    reloadRecipeData();
+    const loaded =
+        reloadRecipeData();
+
+
+    if (
+        !loaded
+    ) {
+
+        renderRecipes();
+
+
+        return;
+
+    }
+
 
     changeCategory(
         "all"
