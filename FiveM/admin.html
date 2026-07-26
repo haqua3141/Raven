@@ -1,0 +1,1154 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>
+        クラフトレシピ管理
+    </title>
+
+    <link rel="stylesheet" href="admin.css">
+
+</head>
+
+
+<body>
+
+
+    <!-- =====================================================
+       ログイン画面
+  ====================================================== -->
+
+    <section id="loginScreen" class="login-screen">
+
+        <div class="login-card">
+
+            <div class="login-icon">
+                🔐
+            </div>
+
+
+            <p class="eyebrow">
+                ADMIN LOGIN
+            </p>
+
+
+            <h1>
+                管理画面ログイン
+            </h1>
+
+
+            <p class="login-description">
+                Supabaseに登録した管理者アカウントでログインしてください。
+            </p>
+
+
+            <form id="loginForm">
+
+
+                <div class="form-field">
+
+                    <label for="loginEmail">
+                        メールアドレス
+                    </label>
+
+                    <input id="loginEmail" type="email" autocomplete="email" required>
+
+                </div>
+
+
+                <div class="form-field" style="margin-top: 14px;">
+
+                    <label for="loginPassword">
+                        パスワード
+                    </label>
+
+                    <input id="loginPassword" type="password" autocomplete="current-password" required>
+
+                </div>
+
+
+                <button id="loginButton" class="primary-button login-button" type="submit">
+                    ログイン
+                </button>
+
+
+                <p id="loginError" class="login-error hidden">
+                </p>
+
+            </form>
+
+
+            <a href="index.html" class="login-back-link">
+                ← 閲覧ページへ戻る
+            </a>
+
+        </div>
+
+    </section>
+
+
+
+    <!-- =====================================================
+       管理画面本体
+       ログイン成功後に表示
+  ====================================================== -->
+
+    <div id="adminApp" class="hidden">
+
+
+        <!-- ===================================================
+         ヘッダー
+    ==================================================== -->
+
+        <header class="admin-header">
+
+            <div class="admin-header-inner">
+
+
+                <div class="admin-brand">
+
+                    <div class="admin-brand-icon">
+                        ⚙️
+                    </div>
+
+
+                    <div>
+
+                        <h1>
+                            クラフトレシピ管理
+                        </h1>
+
+                        <p>
+                            ADMIN PANEL
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <div class="admin-header-actions">
+
+                    <span id="adminUserEmail" class="admin-user-email">
+                    </span>
+
+
+                    <a href="index.html" class="header-link">
+                        ← サイトを見る
+                    </a>
+
+
+                    <button id="importButton" class="header-button" type="button">
+                        データ読込
+                    </button>
+
+
+                    <button id="exportButton" class="header-button" type="button">
+                        データ書き出し
+                    </button>
+
+
+                    <button id="backupButton" class="header-button" type="button">
+                        バックアップ
+                    </button>
+
+
+                    <button id="resetButton" class="header-button danger-lite" type="button">
+                        初期化
+                    </button>
+
+
+                    <button id="logoutButton" class="header-button" type="button">
+                        ログアウト
+                    </button>
+
+                </div>
+
+            </div>
+
+        </header>
+
+
+
+        <!-- ===================================================
+         メイン
+    ==================================================== -->
+
+        <main class="admin-main">
+
+
+            <!-- ===============================================
+           左側
+      ================================================ -->
+
+            <aside class="recipe-sidebar">
+
+
+                <div class="sidebar-heading">
+
+                    <div>
+
+                        <p class="eyebrow">
+                            RECIPES
+                        </p>
+
+                        <h2>
+                            レシピ一覧
+                        </h2>
+
+                    </div>
+
+
+                    <button id="addRecipeButton" class="primary-button small" type="button">
+                        ＋ 新規
+                    </button>
+
+                </div>
+
+
+
+                <div class="admin-search">
+
+                    <span>
+                        🔍
+                    </span>
+
+                    <input id="adminSearchInput" type="search" placeholder="レシピを検索" autocomplete="off">
+
+                </div>
+
+
+
+                <div class="filter-row">
+
+                    <select id="adminCategoryFilter" aria-label="カテゴリー絞り込み">
+
+                        <option value="all">
+                            すべて
+                        </option>
+
+                        <option value="weapon">
+                            武器クラフト
+                        </option>
+
+                        <option value="handicraft">
+                            手芸クラフト
+                        </option>
+
+                        <option value="special">
+                            特殊クラフト
+                        </option>
+
+                        <option value="food">
+                            飲食クラフト
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+
+                <div class="recipe-list-count">
+
+                    <strong id="adminRecipeCount">
+                        0
+                    </strong>
+
+                    件
+
+                </div>
+
+
+
+                <div id="adminRecipeList" class="admin-recipe-list">
+                </div>
+
+
+
+                <div id="adminEmptyState" class="admin-empty hidden">
+
+                    <div class="admin-empty-icon">
+                        📭
+                    </div>
+
+                    <p>
+                        該当するレシピがありません。
+                    </p>
+
+                </div>
+
+
+            </aside>
+
+
+
+            <!-- ===============================================
+           右側
+      ================================================ -->
+
+            <section class="editor-panel">
+
+
+                <div id="editorEmptyState" class="editor-empty">
+
+                    <div class="editor-empty-icon">
+                        🛠️
+                    </div>
+
+                    <h2>
+                        レシピを選択してください
+                    </h2>
+
+                    <p>
+                        左側の一覧から編集するレシピを選択するか、
+                        新しいレシピを作成してください。
+                    </p>
+
+                    <button id="emptyAddRecipeButton" class="primary-button" type="button">
+                        ＋ 新しいレシピを作成
+                    </button>
+
+                </div>
+
+
+
+                <!-- =============================================
+             編集フォーム
+        ============================================== -->
+
+                <form id="recipeEditorForm" class="recipe-editor hidden">
+
+
+                    <div class="editor-header">
+
+                        <div>
+
+                            <p class="eyebrow">
+                                RECIPE EDITOR
+                            </p>
+
+                            <h2 id="editorTitle">
+                                レシピ編集
+                            </h2>
+
+                        </div>
+
+
+                        <div class="editor-actions">
+
+                            <button id="deleteRecipeButton" class="danger-button" type="button">
+                                削除
+                            </button>
+
+                            <button class="primary-button" type="submit">
+                                保存
+                            </button>
+
+                        </div>
+
+                    </div>
+
+
+
+                    <!-- ===========================================
+               基本情報
+          ============================================ -->
+
+                    <section class="editor-section">
+
+                        <div class="section-heading">
+
+                            <div>
+
+                                <p class="eyebrow">
+                                    BASIC
+                                </p>
+
+                                <h3>
+                                    基本情報
+                                </h3>
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="form-grid">
+
+
+                            <div class="form-field">
+
+                                <label for="recipeId">
+                                    レシピID
+                                </label>
+
+                                <input id="recipeId" type="text" placeholder="weapon-001" required>
+
+                            </div>
+
+
+                            <div class="form-field">
+
+                                <label for="recipeCategory">
+                                    カテゴリー
+                                </label>
+
+                                <select id="recipeCategory" required>
+
+                                    <option value="weapon">
+                                        武器クラフト
+                                    </option>
+
+                                    <option value="handicraft">
+                                        手芸クラフト
+                                    </option>
+
+                                    <option value="special">
+                                        特殊クラフト
+                                    </option>
+
+                                    <option value="food">
+                                        飲食クラフト
+                                    </option>
+
+                                </select>
+
+                            </div>
+
+
+                            <div class="form-field full">
+
+                                <label for="recipeName">
+                                    クラフト名
+                                </label>
+
+                                <input id="recipeName" type="text" required>
+
+                            </div>
+
+
+                            <div class="form-field full">
+
+                                <label for="recipeDescription">
+                                    説明
+                                </label>
+
+                                <textarea id="recipeDescription" rows="3"></textarea>
+
+                            </div>
+
+
+                            <!-- =======================================
+                   レシピ画像
+              ======================================== -->
+
+                            <div class="form-field full">
+
+                                <label for="recipeImageFile">
+                                    レシピ画像
+                                </label>
+
+
+                                <div class="image-upload-box">
+
+                                    <input id="recipeImageFile" type="file" accept="image/*">
+
+
+                                    <input id="recipeImage" type="hidden">
+
+
+                                    <input id="recipeImagePath" type="hidden">
+
+
+                                    <div id="recipeImagePreviewWrap" class="image-preview-wrap hidden">
+
+                                        <img id="recipeImagePreview" class="image-preview" src="" alt="レシピ画像プレビュー">
+
+
+                                        <button id="removeRecipeImageButton" class="danger-button image-remove-button"
+                                            type="button">
+                                            画像を削除
+                                        </button>
+
+                                    </div>
+
+
+                                    <p class="field-help">
+                                        画像はSupabase Storageへアップロードされます。
+                                    </p>
+
+                                </div>
+
+                            </div>
+
+
+                        </div>
+
+                    </section>
+
+
+
+                    <!-- ===========================================
+               必要素材
+          ============================================ -->
+
+                    <section class="editor-section">
+
+                        <div class="section-heading">
+
+                            <div>
+
+                                <p class="eyebrow">
+                                    MATERIALS
+                                </p>
+
+                                <h3>
+                                    必要素材
+                                </h3>
+
+                            </div>
+
+
+                            <button id="addMaterialButton" class="secondary-button" type="button">
+                                ＋ 素材を追加
+                            </button>
+
+                        </div>
+
+
+                        <div id="materialsEditor" class="dynamic-list">
+                        </div>
+
+
+                        <div id="materialsEmpty" class="dynamic-empty">
+                            素材が登録されていません。
+                        </div>
+
+                    </section>
+
+
+
+                    <!-- ===========================================
+               クラフト場所
+          ============================================ -->
+
+                    <section class="editor-section">
+
+                        <div class="section-heading">
+
+                            <div>
+
+                                <p class="eyebrow">
+                                    LOCATIONS
+                                </p>
+
+                                <h3>
+                                    クラフト場所
+                                </h3>
+
+                            </div>
+
+
+                            <button id="addLocationButton" class="secondary-button" type="button">
+                                ＋ 場所を追加
+                            </button>
+
+                        </div>
+
+
+                        <div id="locationsEditor" class="dynamic-list">
+                        </div>
+
+
+                        <div id="locationsEmpty" class="dynamic-empty">
+                            クラフト場所が登録されていません。
+                        </div>
+
+                    </section>
+
+
+
+                    <!-- ===========================================
+               備考
+          ============================================ -->
+
+                    <section class="editor-section">
+
+                        <div class="section-heading">
+
+                            <div>
+
+                                <p class="eyebrow">
+                                    NOTES
+                                </p>
+
+                                <h3>
+                                    備考
+                                </h3>
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="form-field">
+
+                            <textarea id="recipeNotes" rows="5"></textarea>
+
+                        </div>
+
+                    </section>
+
+
+
+                    <div class="editor-footer">
+
+                        <button id="cancelEditButton" class="secondary-button" type="button">
+                            キャンセル
+                        </button>
+
+
+                        <button class="primary-button" type="submit">
+                            変更を保存
+                        </button>
+
+                    </div>
+
+
+                </form>
+
+            </section>
+
+
+        </main>
+
+    </div>
+
+
+
+    <!-- =====================================================
+       素材テンプレート
+  ====================================================== -->
+
+    <template id="materialTemplate">
+
+        <article class="dynamic-card material-editor-item">
+
+            <div class="dynamic-card-header">
+
+                <strong>
+                    素材
+                </strong>
+
+
+                <button class="icon-danger-button remove-material-button" type="button">
+                    ×
+                </button>
+
+            </div>
+
+
+            <div class="dynamic-card-body">
+
+                <div class="form-grid material-grid">
+
+
+                    <div class="form-field">
+
+                        <label>
+                            素材名
+                        </label>
+
+                        <input class="material-name-input" type="text" required>
+
+                    </div>
+
+
+                    <div class="form-field">
+
+                        <label>
+                            1回あたりの必要数
+                        </label>
+
+                        <input class="material-amount-input" type="number" min="0" step="1" value="1" required>
+
+                    </div>
+
+
+                </div>
+
+            </div>
+
+        </article>
+
+    </template>
+
+
+
+    <!-- =====================================================
+       場所テンプレート
+  ====================================================== -->
+
+    <template id="locationTemplate">
+
+        <article class="dynamic-card location-editor-item">
+
+
+            <div class="dynamic-card-header">
+
+                <strong>
+                    クラフト場所
+                </strong>
+
+
+                <button class="icon-danger-button remove-location-button" type="button">
+                    ×
+                </button>
+
+            </div>
+
+
+            <div class="dynamic-card-body">
+
+                <div class="form-grid">
+
+
+                    <div class="form-field">
+
+                        <label>
+                            場所名
+                        </label>
+
+                        <input class="location-name-input" type="text" required>
+
+                    </div>
+
+
+                    <div class="form-field">
+
+                        <label>
+                            番地
+                        </label>
+
+                        <input class="location-address-input" type="text">
+
+                    </div>
+
+
+
+                    <!-- 現地画像 -->
+
+                    <div class="form-field full">
+
+                        <label>
+                            現地画像
+                        </label>
+
+
+                        <div class="image-upload-box">
+
+                            <input class="location-field-image-file" type="file" accept="image/*">
+
+
+                            <input class="location-field-image-input" type="hidden">
+
+
+                            <input class="location-field-image-path" type="hidden">
+
+
+                            <div class="
+                  location-field-preview-wrap
+                  image-preview-wrap
+                  hidden
+                ">
+
+                                <img class="
+                    location-field-preview
+                    image-preview
+                  " src="" alt="現地画像">
+
+
+                                <button class="
+                    danger-button
+                    image-remove-button
+                    remove-field-image-button
+                  " type="button">
+                                    画像を削除
+                                </button>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+
+                    <!-- マップ画像 -->
+
+                    <div class="form-field full">
+
+                        <label>
+                            マップ画像
+                        </label>
+
+
+                        <div class="image-upload-box">
+
+                            <input class="location-map-image-file" type="file" accept="image/*">
+
+
+                            <input class="location-map-image-input" type="hidden">
+
+
+                            <input class="location-map-image-path" type="hidden">
+
+
+                            <div class="
+                  location-map-preview-wrap
+                  image-preview-wrap
+                  hidden
+                ">
+
+                                <img class="
+                    location-map-preview
+                    image-preview
+                  " src="" alt="マップ画像">
+
+
+                                <button class="
+                    danger-button
+                    image-remove-button
+                    remove-map-image-button
+                  " type="button">
+                                    画像を削除
+                                </button>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+
+                    <div class="form-field full">
+
+                        <label>
+                            場所説明
+                        </label>
+
+                        <textarea class="location-description-input" rows="3"></textarea>
+
+                    </div>
+
+
+                </div>
+
+            </div>
+
+        </article>
+
+    </template>
+
+
+
+    <!-- =====================================================
+       削除確認
+  ====================================================== -->
+
+    <div id="deleteConfirmModal" class="admin-modal" aria-hidden="true">
+
+        <div class="admin-modal-backdrop" data-close-delete-modal></div>
+
+
+        <div class="admin-modal-dialog">
+
+            <div class="confirm-icon">
+                ⚠️
+            </div>
+
+
+            <h2>
+                レシピを削除しますか？
+            </h2>
+
+
+            <p>
+                Supabaseから削除されます。
+            </p>
+
+
+            <div class="confirm-actions">
+
+                <button class="secondary-button" type="button" data-close-delete-modal>
+                    キャンセル
+                </button>
+
+
+                <button id="confirmDeleteButton" class="danger-button" type="button">
+                    削除する
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- =====================================================
+       JSON書き出し
+  ====================================================== -->
+
+    <div id="exportModal" class="admin-modal" aria-hidden="true">
+
+        <div class="admin-modal-backdrop" data-close-export-modal></div>
+
+
+        <div class="admin-modal-dialog export-dialog">
+
+            <div class="export-header">
+
+                <div>
+
+                    <p class="eyebrow">
+                        EXPORT
+                    </p>
+
+                    <h2>
+                        レシピデータ書き出し
+                    </h2>
+
+                </div>
+
+
+                <button class="modal-close-button" type="button" data-close-export-modal>
+                    ×
+                </button>
+
+            </div>
+
+
+            <textarea id="exportTextarea" class="export-textarea" readonly></textarea>
+
+
+            <div class="export-actions">
+
+                <button id="copyExportButton" class="secondary-button" type="button">
+                    コピー
+                </button>
+
+
+                <button id="downloadExportButton" class="primary-button" type="button">
+                    JSON保存
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- =====================================================
+       JSON読み込み
+  ====================================================== -->
+
+    <div id="importModal" class="admin-modal" aria-hidden="true">
+
+        <div class="admin-modal-backdrop" data-close-import-modal></div>
+
+
+        <div class="admin-modal-dialog export-dialog">
+
+            <div class="export-header">
+
+                <div>
+
+                    <p class="eyebrow">
+                        IMPORT
+                    </p>
+
+                    <h2>
+                        JSON読み込み
+                    </h2>
+
+                </div>
+
+
+                <button class="modal-close-button" type="button" data-close-import-modal>
+                    ×
+                </button>
+
+            </div>
+
+
+            <div class="form-field">
+
+                <label for="importFileInput">
+                    JSONファイル
+                </label>
+
+                <input id="importFileInput" type="file" accept=".json,application/json">
+
+            </div>
+
+
+            <div class="form-field" style="margin-top: 18px;">
+
+                <label for="importTextarea">
+                    JSON
+                </label>
+
+                <textarea id="importTextarea" class="export-textarea"></textarea>
+
+            </div>
+
+
+            <div class="export-actions">
+
+                <button class="secondary-button" type="button" data-close-import-modal>
+                    キャンセル
+                </button>
+
+
+                <button id="executeImportButton" class="primary-button" type="button">
+                    読み込む
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- =====================================================
+       初期化
+  ====================================================== -->
+
+    <div id="resetConfirmModal" class="admin-modal" aria-hidden="true">
+
+        <div class="admin-modal-backdrop" data-close-reset-modal></div>
+
+
+        <div class="admin-modal-dialog">
+
+            <div class="confirm-icon">
+                ⚠️
+            </div>
+
+
+            <h2>
+                全データを削除しますか？
+            </h2>
+
+
+            <p>
+                Supabase上のクラフトレシピを削除します。
+            </p>
+
+
+            <div class="confirm-actions">
+
+                <button class="secondary-button" type="button" data-close-reset-modal>
+                    キャンセル
+                </button>
+
+
+                <button id="confirmResetButton" class="danger-button" type="button">
+                    削除する
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- =====================================================
+       バックアップ
+  ====================================================== -->
+
+    <div id="backupModal" class="admin-modal" aria-hidden="true">
+
+        <div class="admin-modal-backdrop" data-close-backup-modal></div>
+
+
+        <div class="admin-modal-dialog">
+
+            <div class="confirm-icon">
+                💾
+            </div>
+
+
+            <h2>
+                バックアップ
+            </h2>
+
+
+            <p id="backupDescription">
+            </p>
+
+
+            <div class="confirm-actions">
+
+                <button class="secondary-button" type="button" data-close-backup-modal>
+                    閉じる
+                </button>
+
+
+                <button id="restoreBackupButton" class="primary-button" type="button">
+                    復元する
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- =====================================================
+       通知
+  ====================================================== -->
+
+    <div id="toast" class="toast" role="status" aria-live="polite">
+    </div>
+
+
+
+    <!-- =====================================================
+       JavaScript
+
+       重要：
+       Supabase CDN
+       ↓
+       supabase.js
+       ↓
+       admin.js
+  ====================================================== -->
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <script src="supabase.js"></script>
+
+    <script src="admin.js"></script>
+
+
+</body>
+
+</html>
